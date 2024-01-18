@@ -1,0 +1,392 @@
+---
+title: "0-Delphi-Proces"
+format: html
+editor: visual
+---
+
+## Load packages
+
+```{r}
+library(Hmisc)
+library(dplyr)
+library(tidyverse)
+```
+
+## Load data
+
+```{r}
+data = read.csv("data/ARCRPredDelphiOSSPF_DATA_LABELS_2024-01-16_1052.csv")
+```
+
+```{r}
+data
+```
+
+```{r}
+data2 = data |> 
+  dplyr::filter(!Survey.Timestamp == "[not completed]") #delete incomplete answers
+```
+
+***
+
+Overall, **77** experienced surgeons and-or physiotherapists were invited. Among them, **60** replied and **52** completely answered the questionnaire (67% of the invited participants).
+
+```{r}
+data$Do.you.have.other.baseline.factors.in.mind.that.should.be.considered. |> table()
+data$Do.you.have.other.operation.related.factors.in.mind.that.should.be.considered. |> table()
+data$Do.you.have.other.early.post.operative.management.factors.in.mind.that.should.be.considered. |> table()
+```
+
+```{r}
+data |> select(What.is.your.suggestion.,
+               What.is.your.suggestion..1,
+               What.is.your.suggestion..2,
+               Survey.Identifier) |> 
+  dplyr::filter(
+    !is.na(What.is.your.suggestion.) &
+    What.is.your.suggestion. != "" |
+    !is.na(What.is.your.suggestion..1) &
+    What.is.your.suggestion..1 != "" |
+    !is.na(What.is.your.suggestion..2) &
+    What.is.your.suggestion..2 != "")
+```
+
+
+***
+
+## Factors
+
+```{r}
+data2
+```
+
+
+
+```{r}
+data2 <- 
+  data2 |> 
+  dplyr::mutate(
+    across(,
+           ~ dplyr::case_when(
+             . == "Highly important" ~ "5",
+             . == "Important" ~ "4",
+             . == "Moderately important" ~ "3",
+             . == "Weakly important" ~ "2",
+             . == "Not important" ~ "1",
+             .default = as.character(.)
+           ))) |> 
+  rename(
+    "Acromiohumeral distance (X-rays, in mm)" = Acromiohumeral.distance..X.rays..in.mm.,
+    "Age (in years)" = Age..in.years.,
+    "Alcohol drinks" = Alcohol.drinks,
+    "Anxiety (using PROMIS)" = Anxiety..using.PROMIS.,
+    "ASA classification" = ASA.classification,
+    "Body Mass Index (in kg/m2)" = Body.Mass.Index..in.kg.m2.,
+    "Bone quality" = Bone.quality,
+    "Critical shoulder angle (X-rays, in degrees)" = Critical.shoulder.angle..X.rays..in.degrees.,
+    "Cuff tear index (MRI)" = Cuff.tear.index..MRI.,
+    "Depression (using PROMIS)" = Depression..using.PROMIS.,
+    "Diabetes (comorbidity)" = Diabetes..comorbidity.,
+    "Affected side dominant" = Affected.side.dominant,
+    "Dyslipidemia (comorbidity)" = Dyslipidemia..comorbidity.,
+    "Employment status" = Employment.status,
+    "Fatty infiltration of repaired tendons (Goutallier classification)" = Fatty.infiltration.of.repaired.tendons..Goutallier.classification.,
+    "Fear avoidance" = Fear.avoidance,
+    "History of shoulder stiffness on contralateral side" = History.of.shoulder.stiffness.on.contralateral.side,
+    "Hyper-hypothyroidism (comorbidity)" = Hyper.hypothyroidism..comorbidity.,
+    "Hypercholesterolemia (comorbidity)" = Hypercholesterolemia..comorbidity.,
+    "Hyperlaxity" = Hyperlaxity,
+    "Hypertension (comorbidity)" = Hypertension..comorbidity.,
+    "Involvement of infraspinatus (MRI)" = Involvement.of.infraspinatus..MRI.,
+    "Involvement of subscapularis (MRI)" = Involvement.of.subscapularis..MRI.,
+    "Involvement of supraspinatus (MRI)" = Involvement.of.supraspinatus..MRI.,
+    "Kinesiophobia" = Kinesiophobia,
+    "Lung disease (comorbidity)" = Lung.disease..comorbidity.,
+    "Motivation to return to sports" = Motivation.to.return.to.sports,
+    "Motivation to return to work" = Motivation.to.return.to.work,
+    "Operation fear" = Operation.fear,
+    "Osteoarthritis grade (X-rays, Samilson and Prieto classification)" = Osteoarthritis.grade..X.rays..Samilson.and.Prieto.classification.,
+    "Pain catastrophizing" = Pain.catastrophizing,
+    "Preoperative corticosteroid injections" = Preoperative.corticosteroid.injections,
+    "Preoperative functional status" = Preoperative.functional.status,
+    "Preoperative level of sport activities" = Preoperative.level.of.sport.activities,
+    "Preoperative medication" = Preoperative.medication,
+    "Preoperative muscle strength" = Preoperative.muscle.strength,
+    "Preoperative pain level" = Preoperative.pain.level,
+    "Preoperative patient expectations" = Preoperative.patient.expectations,
+    "Preoperative physical therapy" = Preoperative.physical.therapy,
+    "Preoperative range of motion parameters" = Preoperative.range.of.motion.parameters,
+    "Preoperative shoulder stiffness (i.e. restrictions in passive range of motion)" = Preoperative.shoulder.stiffness..i.e..restrictions.in.passive.range.of.motion.,
+    "Relatives with diabetes" = Relatives.with.diabetes,
+    "Relatives with stiffness" = Relatives.with.stiffness,
+    "Self-efficacy" = Self.efficacy,
+    "Sex" = Sex,
+    "Smoking status" = Smoking.status,
+    "Socioeconomic status" = Socioeconomic.status,
+    "Synovitis shoulder (inflammation)" = Synovitis.shoulder..inflammation.,
+    "Symptom duration" = Symptom.duration,
+    "Systematic lupus erythematosus (comorbidity)" = Systematic.lupus.erythematosus..comorbidity.,
+    "Tendon retraction (MRI, Patte classification)" = Tendon.retraction..MRI..Patte.classification.,
+    "Tear severity (MRI)" = Tear.severity..MRI.,
+    "Tear size (MRI)" = Tear.size..MRI.,
+    "Temperament (behaviour)" = Temperament..behaviour.,
+    "Traumatic onset" = Traumatic.onset,
+    "Timing of preoperative corticosteroid injection" = Timing.of.preoperative.corticosteroid.injection,
+    "Type of work with overhead activity (i.e. none, light, moderate or heavy loads)" = Type.of.work.with.overhead.activity..i.e..none..light..moderate.or.heavy.loads.,
+    "Type of work without overhead activity (i.e. light, moderate or heavy loads)" = Type.of.work.without.overhead.activity..i.e..light..moderate.or.heavy.loads.,
+    "Worker's compensation claim (sick leave compensation)" = Worker.s.compensation.claim..sick.leave.compensation.,
+    "Vitamin D deficiency" = Vitamin.D.deficiency,
+    "Acromioclavicular joint resection" = Acromioclavicular.joint.resection,
+    "Acromioplasty" = Acromioplasty,
+    "Biceps procedures (i.e. none, tenotomy, tenodesis)" = Biceps.procedures..i.e..none..tenotomy..tenodesis.,
+    "Capsulotomy" = Capsulotomy,
+    "Concomitant procedures (i.e. platelet plasma, patch augmentation)" = Concomitant.procedures..i.e..platelet.plasma..patch.augmentation..,
+    "Concomintant rotator cuff pathologies (i.e. SLAP, HAGL, Bankart...)" = Concomintant.rotator.cuff.pathologies..i.e..SLAP..HAGL..Bankart....,
+    "Hospitalization duration (in days)" = Hospitalization.duration..in.days.,
+    "Infraspinatus repair" = Infraspinatus.repair,
+    "Lateral debridement" = Lateral.debridement,
+    "Number of anchors" = Number.of.anchors,
+    "Operation duration (in min)" = Operation.duration..in.min.,
+    "Subscapularis repair" = Subscapularis.repair,
+    "Supraspinatus repair" = Supraspinatus.repair,
+    "Supraspinatus partial tear location (e.g. articular or bursa-side))" = Supraspinatus.partial.tear.location..e.g..articular.or.bursa.side..,
+    "Surgeon experience (years of work as a shoulder surgeon)" = Surgeon.experience..years.of.work.as.a.shoulder.surgeon.,
+    "Surgeon experience (ARCR volume per year)" = Surgeon.experience..ARCR.volume.per.year.,
+    "Surgeon-patient sex mismatch" = Surgeon.patient.sex.mismatch,
+    "Suture technique of repaired tendon (i.e. single-row, double-row, transosseous-equivalent))" = Suture.technique.of.repaired.tendon..i.e..single.row..double.row..transosseous.equivalent..,
+    "Tendon degeneration (thinner tendon)" = Tendon.degeneration..thinner.tendon.,
+    "Tendon delamination (horizontal tendon retraction)" = Tendon.delamination..horizontal.tendon.retraction.,
+    "Immobilization duration (in weeks)" = Immobilization.duration..in.weeks.,
+    "Immobilization position using aid (i.e. internal or neutral)" = Immobilization.position.using.aid..i.e..internal.or.neutral.,
+    "Pain level at 6 weeks" = Pain.level.at.6.weeks,
+    "Pain level the day after surgery" = Pain.level.the.day.after.surgery,
+    "Passive motion at 6 weeks" = Passive.motion.at.6.weeks,
+    "Physical therapist experience (years of work as a physical therapist)" = Physical.therapist.experience..years.of.work.as.a.physical.therapist.,
+    "Postoperative complex regional pain syndrome within 6 months" = Postoperative.complex.regional.pain.syndrome.within.6.months,
+    "Postoperative pain medication and dosage" = Postoperative.pain.medication.and.dosage,
+    "Postoperative retear within 6 months" = Postoperative.retear.within.6.months,
+    "Postoperative shoulder stiffness within 6 months" = Postoperative.shoulder.stiffness.within.6.months,
+    "Rehabilitation procedure type (i.e. none, physiotherapy, watertherapy, ergotherapy, or other rehabilitation procedure)" = Rehabilitation.procedure.type..i.e..none..physiotherapy..watertherapy..ergotherapy..or.other.rehabilitation.procedure.,
+    "Time of starting passive range of motion (in weeks)" = Time.of.starting.passive.range.of.motion..in.weeks.,
+    "Time of starting active range of motion (in weeks)" = Time.of.starting.active.range.of.motion..in.weeks.,
+    "Vitamin D deficiency (6 week)" = Vitamin.D.deficiency..6.week.
+  )
+```
+
+
+### Ranking
+
+#### Baseline factors (1/6)
+
+```{r}
+data_mean <- 
+  data2 |> 
+  dplyr::select(
+    c(4:12)
+  ) |> 
+  mutate_all(as.numeric)|> 
+  summarize(across(everything(), mean)) |> 
+  t() |> 
+  as.data.frame() |> 
+  tibble::rownames_to_column()
+
+data_sd = 
+  data2 |> 
+  dplyr::select(
+    c(4:12)
+  ) |> 
+  dplyr::mutate_all(as.numeric) |> 
+  summarize(across(everything(), sd)) |> 
+  t() |> 
+  as.data.frame() |> 
+  tibble::rownames_to_column()
+
+data_ready <- left_join(
+  data_mean,
+  data_sd,
+  by = "rowname"
+) |> 
+  rename(
+    Mean = V1.x,
+    SD = V1.y
+  )
+
+data_ready2 <-
+  data2 |> 
+  dplyr::select(
+    Survey.Identifier,
+    c(4:13)) |> 
+  t() |> 
+  as.data.frame()
+
+names(data_ready2) <-
+  data_ready2 |> 
+  slice(1) |> unlist()
+
+data_ready2 <- data_ready2 |> slice(-1) |> tibble::rownames_to_column()
+
+data_final <- 
+  left_join(data_ready,
+            data_ready2,
+            by = "rowname")
+```
+
+```{r}
+data_final$rowname <-
+  factor(data_final$rowname,
+         levels = data_final$rowname[order(desc(data_final$rowname))])
+```
+
+```{r}
+library(ggplot2)
+```
+```{r}
+for (i in 4:ncol(data_final)) {
+  graphbase16 <-
+    ggplot(data_final) +
+    geom_point(
+      aes(
+        x = data_final[ , 2],
+        y = data_final[ , 1],
+        size = 4,
+        colour = "red")) +
+    geom_errorbarh(
+      aes(    
+        x = data_final[ , 2],
+        y = data_final[ , 1],
+        xmin = data_final[ , 2] - data_final[ , 3],
+        xmax = data_final[ , 2] + data_final[ , 3],
+        colour = "red"
+        ),
+      height = .2) +
+    geom_point(
+      aes(
+        x = as.numeric(data_final[, i]),
+        y = data_final[, 1],
+        size = 4,
+        colour = "blue")) + 
+    xlab("Rating importance") +
+    ylab("Baseline factors (1/6)") +
+    theme_minimal() +
+    theme(legend.position = 'none',
+          text = element_text(size = 15)) +
+    coord_fixed(ratio = 0.2,
+                xlim = c(1, 5))
+  ggsave(filename = paste("plots/basefac/basefac1-6_", colnames(data_final[i]),".png", sep = ""), 
+         device = "png",
+         dpi = 1200,
+         width = 10,
+         height = 6)
+  print(graphbase16)
+  dev.off()
+}
+```
+
+#### Baseline factors (2/6)
+
+```{r}
+data_mean <- 
+  data2 |> 
+  dplyr::select(
+    c(13:22)
+  ) |> 
+  mutate_all(as.numeric)|> 
+  summarize(across(everything(), mean)) |> 
+  t() |> 
+  as.data.frame() |> 
+  tibble::rownames_to_column()
+
+data_sd = 
+  data2 |> 
+  dplyr::select(
+    c(13:22)
+  ) |> 
+  dplyr::mutate_all(as.numeric) |> 
+  summarize(across(everything(), sd)) |> 
+  t() |> 
+  as.data.frame() |> 
+  tibble::rownames_to_column()
+
+data_ready <- left_join(
+  data_mean,
+  data_sd,
+  by = "rowname"
+) |> 
+  rename(
+    Mean = V1.x,
+    SD = V1.y
+  )
+
+data_ready2 <-
+  data2 |> 
+  dplyr::select(
+    Survey.Identifier,
+    c(13:22)) |> 
+  t() |> 
+  as.data.frame()
+
+names(data_ready2) <-
+  data_ready2 |> 
+  slice(1) |> unlist()
+
+data_ready2 <- data_ready2 |> slice(-1) |> tibble::rownames_to_column()
+
+data_final <- 
+  left_join(data_ready,
+            data_ready2,
+            by = "rowname")
+```
+
+```{r}
+data_final$rowname <-
+  factor(data_final$rowname,
+         levels = data_final$rowname[order(desc(data_final$rowname))])
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+for (i in 4:ncol(data_final)) {
+  graphbase16 <-
+    ggplot(data_final) +
+    geom_point(
+      aes(
+        x = data_final[ , 2],
+        y = data_final[ , 1],
+        size = 4,
+        colour = "red")) +
+    geom_errorbarh(
+      aes(    
+        x = data_final[ , 2],
+        y = data_final[ , 1],
+        xmin = data_final[ , 2] - data_final[ , 3],
+        xmax = data_final[ , 2] + data_final[ , 3],
+        colour = "red"
+        ),
+      height = .2) +
+    geom_point(
+      aes(
+        x = as.numeric(data_final[, i]),
+        y = data_final[, 1],
+        size = 4,
+        colour = "blue")) + 
+    xlab("Rating importance") +
+    ylab("Baseline factors (1/6)") +
+    theme_minimal() +
+    theme(legend.position = 'none',
+          text = element_text(size = 15)) +
+    coord_fixed(ratio = 0.2,
+                xlim = c(1, 5))
+  ggsave(filename = paste("plots/basefac/basefac1-6_", colnames(data_final[i]),".png", sep = ""), 
+         device = "png",
+         dpi = 1200,
+         width = 10,
+         height = 6)
+  print(graphbase16)
+  dev.off()
+}
+```
+
+
